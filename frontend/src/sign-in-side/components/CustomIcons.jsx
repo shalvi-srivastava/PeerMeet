@@ -1,41 +1,31 @@
-import SvgIcon from '@mui/material/SvgIcon';
+import VideocamIcon from "@mui/icons-material/Videocam";
+import { SvgIcon, Box } from "@mui/material";
 
 export function SitemarkIcon() {
   return (
-    <SvgIcon sx={{ height: 24, width: 140, mr: 2 }}>
-      <svg
-        viewBox="0 0 140 24"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        {/* Abstract Icon (kept from original – connection vibe) */}
-        <path
-          fill="#4876EF"
-          d="m3 15 6-3 4 2 1 7-5-.1.7-5-.8-.5-4 3-2-4Z"
-        />
-        <path
-          fill="#00D3AB"
-          d="m13 14 6 4 2-4-5-2v-1l5-2-2-4-6 4v5Z"
-        />
-        <path
-          fill="#4876EF"
-          d="m13 8 1-7-5 .1.7 5-.8.5-4-3L3 7l6 3 4-2Z"
-        />
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        height: 28,
+        mr: 2,
+      }}
+    >
+      <VideocamIcon sx={{ color: "#4876EF", fontSize: 28, mr: 0.5 }} />
 
-        {/* Wordmark */}
-        <text
-          x="32"
-          y="17"
-          fontSize="24px"
-          fontWeight="600"
-          fill="#4876EF"
-          fontFamily="Inter, system-ui, sans-serif"
-        >
-          Peer
-          <tspan fill="#00D3AB">Meet</tspan>
-        </text>
-      </svg>
-    </SvgIcon>
+      <Box
+        component="span"
+        sx={{
+          fontSize: 24,
+          fontWeight: 700,
+          fontFamily: "Inter, system-ui, sans-serif",
+          lineHeight: 1,
+        }}
+      >
+        <span style={{ color: "#4876EF" }}>Peer</span>
+        <span style={{ color: "#00D3AB" }}>Meet</span>
+      </Box>
+    </Box>
   );
 }
 
