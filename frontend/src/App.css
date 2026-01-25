@@ -1,0 +1,287 @@
+   /* LANDING PAGE */
+
+   .landingPageContainer {
+     width: 100vw;
+     height: 100vh;
+     background: url("/background.png");
+     background-repeat: no-repeat;
+     background-size: cover;
+     color: white;
+   }
+
+   .landingPageContainer nav {
+     display: flex;
+     justify-content: space-between;
+     align-items: center;
+     padding-inline: 1.2rem;
+     padding-block: 1.6rem;
+   }
+
+   .landingPageContainer nav h2 {
+     font-size: 1.8rem;
+     font-weight: 500;
+   }
+
+   .landingPageContainer nav .navlist {
+     display: flex;
+     gap: 1.6rem;
+     cursor: pointer;
+   }
+   .landingPageContainer nav .navlist p:hover {
+     display: flex;
+     gap: 1.6rem;
+     cursor: pointer;
+     color: #4876ef;
+   }
+
+   /* LANDING MAIN CONTENT */
+
+   .landingMainContainer {
+     display: flex;
+     justify-content: space-between;
+     align-items: center;
+     height: 80vh;
+     padding-inline: 3rem;
+   }
+
+   .landingMainContainer>div:nth-child(1) {
+     font-size: 2.2rem;
+   }
+
+   .landingMainContainer>div:nth-child(1) div[role="button"] {
+     width: fit-content;
+     margin-top: 1.9rem;
+     padding: 1rem;
+     border-radius: 20px;
+     background: #4876ef;
+   }
+
+   .landingMainContainer>div:nth-child(1) div[role="button"] a {
+     text-decoration: none;
+     color: white;
+     font-size: 1.7rem;
+   }
+
+   .landingMainContainer>div:nth-child(2) img {
+     height: 70vh;
+     width: auto;
+   }
+
+   /* HOME LAYOUT */
+
+   .homeComponent {
+     width: 100vw;
+     height: 100vh;
+     background: url("/background.png") no-repeat center/cover;
+     color: white;
+     display: flex;
+     flex-direction: column;
+   }
+
+   /* NAVBAR */
+
+   .navBar {
+     height: 70px;
+     display: flex;
+     align-items: center;
+     justify-content: space-between;
+     padding: 0 3rem;
+     text-align: center;
+     backdrop-filter: blur(10px);
+     background: rgba(0, 0, 0, 0.3);
+   }
+
+   .logo {
+     font-size: 1.6rem;
+     font-weight: 600;
+   }
+
+   .navActions {
+     display: flex;
+     align-items: center;
+     gap: 1.2rem;
+   }
+
+   /* BUTTONS */
+
+   .logoutBtn {
+     border: 1px solid rgba(255, 255, 255, 0.4) !important;
+     color: white !important;
+   }
+
+   .logoutBtn:hover {
+     background: #4876EF !important;
+     background: linear-gradient(135deg, #8eace3, #4876EF) !important;
+
+   }
+
+   .historyBtn {
+     color: white !important;
+     background: linear-gradient(135deg, #8eace3, #4876EF) !important;
+     transition: all 0.25s ease;
+
+   }
+
+   .historyBtn:hover {
+     background: transparent !important;
+     border: 1px solid rgba(255, 255, 255, 0.6) !important;
+   }
+
+   .joinBtn {
+     height: 56px;
+     padding: 0 28px !important;
+     font-size: 1rem !important;
+     border-radius: 12px !important;
+     background: linear-gradient(135deg, #8eace3, #4876EF) !important;
+   }
+
+   /* MEET SECTION */
+
+   .meetContainer {
+     flex: 1;
+     display: flex;
+     padding: 3rem;
+     gap: 10vw;
+     justify-content: center;
+   }
+
+   .leftPanel {
+     flex: 1;
+     display: flex;
+     align-items: center;
+   }
+
+   .rightPanel {
+     flex: 1;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+   }
+
+   .rightPanel img {
+     width: 28vw;
+     max-width: 420px;
+     border-radius: 20px;
+     opacity: 0.9;
+   }
+
+   /* CONTENT */
+
+   .contentBox {
+     max-width: 520px;
+   }
+
+   .contentBox h1 {
+     font-size: 2.4rem;
+     line-height: 1.3;
+     margin-bottom: 2rem;
+     font-weight: 600;
+   }
+
+   .joinRow {
+     display: flex;
+     align-items: center;
+     gap: 12px;
+   }
+
+   /* DARK MUI TEXTFIELD */
+
+
+   .dark-textfield {
+     background-color: rgba(255, 255, 255, 0.06);
+     border-radius: 12px;
+   }
+
+   .dark-textfield .MuiOutlinedInput-root {
+     color: #ffffff;
+     border-radius: 12px;
+   }
+
+   .dark-textfield .MuiOutlinedInput-root fieldset {
+     border-color: rgba(255, 255, 255, 0.4);
+   }
+
+   .dark-textfield .MuiOutlinedInput-root:hover fieldset {
+     border-color: rgba(255, 255, 255, 0.7);
+   }
+
+   .dark-textfield .MuiOutlinedInput-root.Mui-focused fieldset {
+     border-color: #90caf9;
+     border-width: 2px;
+   }
+
+   .dark-textfield .MuiInputLabel-root {
+     color: rgba(255, 255, 255, 0.6);
+   }
+
+   .dark-textfield .MuiInputLabel-root.Mui-focused {
+     color: #90caf9;
+   }
+
+   .dark-textfield input::placeholder {
+     color: rgba(255, 255, 255, 0.4);
+     opacity: 1;
+   }
+
+   /* HISTORY */
+   .historyPage {
+     min-height: 100vh;
+     padding: 2.5rem 3rem;
+     background: url("/background.png") no-repeat center/cover;
+     color: white;
+   }
+
+   .historyHeader {
+     display: flex;
+     align-items: center;
+     gap: 1rem;
+     margin-bottom: 2rem;
+   }
+
+   .historyHeader h2 {
+     font-size: 1.8rem;
+     font-weight: 600;
+   }
+
+   .backBtn {
+     color: white !important;
+     border: 1px solid rgba(255, 255, 255, 0.4);
+   }
+
+   .historyList {
+     display: grid;
+     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+     gap: 1.2rem;
+   }
+
+   .historyCard {
+     background: rgba(255, 255, 255, 0.08) !important;
+     backdrop-filter: blur(10px);
+     border-radius: 16px !important;
+     border: 1px solid rgba(255, 255, 255, 0.2) !important;
+     color: white !important;
+     transition: transform 0.25s ease, box-shadow 0.25s ease;
+   }
+
+   .historyCard:hover {
+     transform: translateY(-4px);
+     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+   }
+
+   .meetingCode {
+     font-size: 1.1rem !important;
+     font-weight: 500 !important;
+     margin-bottom: 0.5rem !important;
+   }
+
+   .meetingDate {
+     font-size: 0.9rem !important;
+     color: rgba(255, 255, 255, 0.7) !important;
+   }
+
+   .emptyState {
+     margin-top: 4rem;
+     text-align: center;
+     font-size: 1.1rem;
+     opacity: 0.7;
+   }
