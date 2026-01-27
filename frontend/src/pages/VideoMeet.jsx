@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import io from "socket.io-client";
 import { Badge, IconButton, TextField } from "@mui/material";
 import { Button } from "@mui/material";
@@ -24,6 +25,8 @@ const peerConfigConnections = {
 };
 
 export default function VideoMeetComponent() {
+  const navigate = useNavigate();
+
   var socketRef = useRef();
   let socketIdRef = useRef();
 
@@ -39,7 +42,7 @@ export default function VideoMeetComponent() {
 
   let [screen, setScreen] = useState();
 
-  let [showModal, setModal] = useState(true);
+  let [showModal, setModal] = useState(false);
 
   let [screenAvailable, setScreenAvailable] = useState();
 
@@ -392,16 +395,18 @@ export default function VideoMeetComponent() {
       let tracks = localVideoref.current.srcObject.getTracks();
       tracks.forEach((track) => track.stop());
     } catch (e) {}
-    window.location.href = "/home";
+    navigate("/home");
   };
 
-  // let openChat = () => {
-  //   setModal(true);
-  //   setNewMessages(0);
-  // };
-  // let closeChat = () => {
-  //   setModal(false);
-  // };
+  const openChat = () => {
+    setModal(true);
+    setNewMessages(0);
+  };
+
+  const closeChat = () => {
+    setModal(false);
+  };
+
   // let handleMessage = (e) => {
   //   setMessage(e.target.value);
   // };
@@ -524,22 +529,18 @@ export default function VideoMeetComponent() {
             </IconButton>
 
             <Badge badgeContent={newMessages} max={999} color="error">
-              <IconButton
-                onClick={() => {
-                  setModal((prev) => {
-                    const next = !prev;
-                    if (next === true) {
-                      setNewMessages(0);
-                    }
-                    return next;
-                  });
-                  console.log(newMessages);
-                }}
-                className="controlBtn"
-              >
+              <IconButton onClick={openChat} className="controlBtn">
                 <ChatIcon />
               </IconButton>
             </Badge>
+
+            {/* <button
+              onClick={() =>
+                addMessage("Test incoming message", "Peer", "FAKE_SOCKET_ID")
+              }
+            >
+              Simulate Incoming Message
+            </button> */}
 
             {screenAvailable ? (
               <IconButton onClick={handleScreen} className="controlBtn">
