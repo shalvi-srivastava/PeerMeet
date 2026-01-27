@@ -18,6 +18,27 @@ import server from "../environment";
 
 const server_url = server;
 
+const VideoTile = React.memo(function VideoTile({ stream, socketId }) {
+  const videoRef = React.useRef(null);
+
+  React.useEffect(() => {
+    if (videoRef.current && stream) {
+      videoRef.current.srcObject = stream;
+    }
+  }, [stream]);
+
+  return (
+    <div className="remoteVideoWrapper">
+      <video
+        ref={videoRef}
+        data-socket={socketId}
+        autoPlay
+        playsInline
+      />
+    </div>
+  );
+});
+
 var connections = {};
 
 const peerConfigConnections = {
@@ -398,13 +419,25 @@ export default function VideoMeetComponent() {
     navigate("/home");
   };
 
-  const openChat = () => {
-    setModal(true);
-    setNewMessages(0);
-  };
+  // const openChat = () => {
+  //   setModal(true);
+  //   setNewMessages(0);
+  // };
 
-  const closeChat = () => {
-    setModal(false);
+  // const closeChat = () => {
+  //   setModal(false);
+  // };
+  const toggleChat = () => {
+    setModal((prev) => {
+      const next = !prev;
+
+      // Chat is opening → clear unread
+      if (next === true) {
+        setNewMessages(0);
+      }
+
+      return next;
+    });
   };
 
   // let handleMessage = (e) => {
@@ -528,8 +561,13 @@ export default function VideoMeetComponent() {
               {audio ? <MicIcon /> : <MicOffIcon />}
             </IconButton>
 
-            <Badge badgeContent={newMessages} max={999} color="error">
-              <IconButton onClick={openChat} className="controlBtn">
+            <Badge
+              badgeContent={newMessages}
+              max={999}
+              color="error"
+              invisible={showModal || newMessages === 0}
+            >
+              <IconButton onClick={toggleChat} className="controlBtn">
                 <ChatIcon />
               </IconButton>
             </Badge>
@@ -565,17 +603,11 @@ export default function VideoMeetComponent() {
 
           <div className="conferenceView">
             {videos.map((video) => (
-              <div key={video.socketId} className="remoteVideoWrapper">
-                <video
-                  data-socket={video.socketId}
-                  ref={(ref) => {
-                    if (ref && video.stream) {
-                      ref.srcObject = video.stream;
-                    }
-                  }}
-                  autoPlay
-                ></video>
-              </div>
+              <VideoTile
+                key={video.socketId}
+                socketId={video.socketId}
+                stream={video.stream}
+              />
             ))}
           </div>
         </div>

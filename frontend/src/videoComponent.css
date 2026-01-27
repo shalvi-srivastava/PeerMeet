@@ -293,3 +293,7 @@
   padding-right: 5px !important;
   width: 100%;
 }
+
+.conferenceView video {
+  border: 1px solid blue;
+}
