@@ -11,13 +11,13 @@ export default function Landing() {
           <SitemarkIcon/>
         </div>
         <div className="navlist">
-          <p
+          {/* <p
             onClick={() => {
               router("/random");
             }}
           >
             Join as Guest
-          </p>
+          </p> */}
           <p
             onClick={() => {
               router("/auth");

@@ -17,7 +17,7 @@ function HomeComponent() {
 
     try {
       await addToUserHistory(meetingCode);
-      navigate(`/${meetingCode}`);
+      navigate(`/home/${meetingCode}`);
     } catch (err) {
       console.error("Failed to join meeting:", err);
     }

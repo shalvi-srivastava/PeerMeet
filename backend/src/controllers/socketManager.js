@@ -18,32 +18,20 @@ export const connectToSocket = (server) => {
         console.log("SOMETHING CONNECTED");
 
         socket.on("join-call", (path) => {
-            if (!connections[path]) {
-                connections[path] = [];
-            }
+            if (!connections[path]) connections[path] = [];
 
-            if (!connections[path].includes(socket.id)) {
-                connections[path].push(socket.id);
-            }
+            const existingUsers = [...connections[path]];
 
-            timeOnline[socket.id] = new Date();
+            connections[path].push(socket.id);
 
-            connections[path].forEach((id) => {
-                io.to(id).emit("user-joined", socket.id, connections[path]);
+            // notify existing users
+            existingUsers.forEach((id) => {
+                io.to(id).emit("user-joined", socket.id);
             });
 
-            if (messages[path]) {
-                messages[path].forEach((msg) => {
-                    io.to(socket.id).emit(
-                        "chat-message",
-                        msg.data,
-                        msg.sender,
-                        msg["socket-id-sender"]
-                    );
-                });
-            }
+            // send existing users to joiner
+            io.to(socket.id).emit("existing-users", existingUsers);
         });
-
         socket.on("signal", (toId, message) => {
             io.to(toId).emit("signal", socket.id, message);
         });

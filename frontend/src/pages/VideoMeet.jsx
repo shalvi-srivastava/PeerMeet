@@ -29,12 +29,7 @@ const VideoTile = React.memo(function VideoTile({ stream, socketId }) {
 
   return (
     <div className="remoteVideoWrapper">
-      <video
-        ref={videoRef}
-        data-socket={socketId}
-        autoPlay
-        playsInline
-      />
+      <video ref={videoRef} data-socket={socketId} autoPlay playsInline />
     </div>
   );
 });
@@ -171,10 +166,23 @@ export default function VideoMeetComponent() {
       console.log("SET STATE HAS ", video, audio);
     }
   }, [video, audio]);
-  let getMedia = () => {
-    setVideo(videoAvailable);
-    setAudio(audioAvailable);
-    connectToSocketServer();
+  let getMedia = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: videoAvailable,
+        audio: audioAvailable,
+      });
+
+      window.localStream = stream;
+      localVideoref.current.srcObject = stream;
+
+      setVideo(videoAvailable);
+      setAudio(audioAvailable);
+
+      connectToSocketServer(); // connect AFTER stream ready
+    } catch (e) {
+      console.log(e);
+    }
   };
 
   let getUserMediaSuccess = (stream) => {
@@ -353,7 +361,13 @@ export default function VideoMeetComponent() {
             if (peerId === socketIdRef.current) continue;
 
             const pc = connections[peerId];
-
+            if (window.localStream) {
+              window.localStream.getTracks().forEach((track) => {
+                if (!pc.getSenders().find((s) => s.track === track)) {
+                  pc.addTrack(track, window.localStream);
+                }
+              });
+            }
             pc.createOffer()
               .then((offer) => pc.setLocalDescription(offer))
               .then(() => {

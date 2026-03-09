@@ -285,3 +285,44 @@
      font-size: 1.1rem;
      opacity: 0.7;
    }
+
+   /* Not Found Page */
+
+   .err-container {
+     height: 100vh;
+     display: flex;
+     flex-direction: column;
+     justify-content: center;
+     background: url("/background.png");
+     align-items: center;
+     /* background-color: #f9fafb; */
+     text-align: center;
+   }
+
+   .err-code {
+     font-size: 96px;
+     margin: 0;
+     color: #2563eb;
+   }
+
+   .err-title {
+     font-size: 28px;
+     margin: 10px 0;
+   }
+
+   .err-text {
+     font-size: 16px;
+     color: #6b7280;
+     max-width: 400px;
+   }
+
+   .err-btn {
+     margin-top: 20px;
+     padding: 10px 20px;
+     font-size: 16px;
+     background-color: #2563eb;
+     color: #fff;
+     border: none;
+     border-radius: 6px;
+     cursor: pointer;
+   }

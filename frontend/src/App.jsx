@@ -5,6 +5,7 @@ import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import VideoMeetComponent from "./pages/VideoMeet";
 import Home from "./pages/Home";
 import History from "./pages/History";
+import Error from "./pages/Error";
 
 function App() {
   return (
@@ -16,7 +17,8 @@ function App() {
             <Route path="/auth" element={<Authentication />} />
             <Route path="/home" element={<Home />} />
             <Route path="/history" element={<History />} />
-            <Route path="/:url" element={<VideoMeetComponent />} />
+            <Route path="/:url" element={<Error />} />
+            <Route path="/home/:url" element={<VideoMeetComponent />} />
           </Routes>
         </AuthProvider>
       </Router>
