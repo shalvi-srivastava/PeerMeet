@@ -248,44 +248,78 @@ export default function VideoMeetComponent() {
     };
   };
 
-  let gotMessageFromServer = (fromId, message) => {
-    var signal = JSON.parse(message);
+ let gotMessageFromServer = async (fromId, message) => {
 
-    if (fromId !== socketIdRef.current) {
-      if (signal.sdp) {
-        connections[fromId]
-          .setRemoteDescription(new RTCSessionDescription(signal.sdp))
-          .then(() => {
-            if (signal.sdp.type === "offer") {
-              connections[fromId]
-                .createAnswer()
-                .then((description) => {
-                  connections[fromId]
-                    .setLocalDescription(description)
-                    .then(() => {
-                      socketRef.current.emit(
-                        "signal",
-                        fromId,
-                        JSON.stringify({
-                          sdp: connections[fromId].localDescription,
-                        }),
-                      );
-                    })
-                    .catch((e) => console.log(e));
-                })
-                .catch((e) => console.log(e));
-            }
-          })
-          .catch((e) => console.log(e));
-      }
+  const signal = JSON.parse(message);
 
-      if (signal.ice) {
-        connections[fromId]
-          .addIceCandidate(new RTCIceCandidate(signal.ice))
-          .catch((e) => console.log(e));
+  if (fromId === socketIdRef.current) return;
+
+  // Create peer if it doesn't exist
+  if (!connections[fromId]) {
+
+    const pc = new RTCPeerConnection(peerConfigConnections);
+    connections[fromId] = pc;
+
+    pc.onicecandidate = (event) => {
+      if (event.candidate) {
+        socketRef.current.emit(
+          "signal",
+          fromId,
+          JSON.stringify({ ice: event.candidate })
+        );
       }
+    };
+
+    pc.ontrack = (event) => {
+      setVideos(prev => {
+        const exists = prev.find(v => v.socketId === fromId);
+        if (exists) return prev;
+
+        return [...prev, {
+          socketId: fromId,
+          stream: event.streams[0]
+        }];
+      });
+    };
+
+    if (window.localStream) {
+      window.localStream.getTracks().forEach(track => {
+        pc.addTrack(track, window.localStream);
+      });
     }
-  };
+
+  }
+
+  const pc = connections[fromId];
+
+  if (signal.sdp) {
+
+    await pc.setRemoteDescription(new RTCSessionDescription(signal.sdp));
+
+    if (signal.sdp.type === "offer") {
+
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+
+      socketRef.current.emit(
+        "signal",
+        fromId,
+        JSON.stringify({ sdp: pc.localDescription })
+      );
+
+    }
+
+  }
+
+  if (signal.ice) {
+    try {
+      await pc.addIceCandidate(new RTCIceCandidate(signal.ice));
+    } catch (e) {
+      console.log("ICE error", e);
+    }
+  }
+
+};
 
   let connectToSocketServer = () => {
     socketRef.current = io.connect(server_url, { secure: false });
