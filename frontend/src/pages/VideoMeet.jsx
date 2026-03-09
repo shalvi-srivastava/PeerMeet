@@ -306,81 +306,90 @@ export default function VideoMeetComponent() {
 
         setVideos((videos) => videos.filter((v) => v.socketId !== id));
       });
+socketRef.current.on("existing-users", (users) => {
 
-      socketRef.current.on("user-joined", (id, clients) => {
-        clients.forEach((socketListId) => {
-          if (connections[socketListId]) return;
+  users.forEach((socketListId) => {
 
-          const pc = new RTCPeerConnection(peerConfigConnections);
+    const pc = new RTCPeerConnection(peerConfigConnections);
 
-          // 🔒 Lock media structure once
-          pc.addTransceiver("audio", { direction: "sendrecv" });
-          pc.addTransceiver("video", { direction: "sendrecv" });
+    connections[socketListId] = pc;
 
-          connections[socketListId] = pc;
+    pc.onicecandidate = (event) => {
+      if (event.candidate) {
+        socketRef.current.emit(
+          "signal",
+          socketListId,
+          JSON.stringify({ ice: event.candidate })
+        );
+      }
+    };
 
-          // ICE
-          pc.onicecandidate = (event) => {
-            if (event.candidate) {
-              socketRef.current.emit(
-                "signal",
-                socketListId,
-                JSON.stringify({ ice: event.candidate }),
-              );
-            }
-          };
+    pc.ontrack = (event) => {
+      setVideos(prev => {
+        const exists = prev.find(v => v.socketId === socketListId);
+        if (exists) return prev;
 
-          // 🔥 MODERN API (NOT onaddstream)
-          pc.ontrack = (event) => {
-            setVideos((prev) => {
-              const exists = prev.find((v) => v.socketId === socketListId);
-              if (exists) return prev;
-
-              const newVideo = {
-                socketId: socketListId,
-                stream: event.streams[0],
-                autoplay: true,
-                playsinline: true,
-              };
-
-              return [...prev, newVideo];
-            });
-          };
-
-          // ➕ Add local tracks ONCE
-          if (window.localStream) {
-            window.localStream.getTracks().forEach((track) => {
-              pc.addTrack(track, window.localStream);
-            });
-          }
-        });
-
-        // 🔁 Only the joiner creates offers
-        if (id === socketIdRef.current) {
-          for (let peerId in connections) {
-            if (peerId === socketIdRef.current) continue;
-
-            const pc = connections[peerId];
-            if (window.localStream) {
-              window.localStream.getTracks().forEach((track) => {
-                if (!pc.getSenders().find((s) => s.track === track)) {
-                  pc.addTrack(track, window.localStream);
-                }
-              });
-            }
-            pc.createOffer()
-              .then((offer) => pc.setLocalDescription(offer))
-              .then(() => {
-                socketRef.current.emit(
-                  "signal",
-                  peerId,
-                  JSON.stringify({ sdp: pc.localDescription }),
-                );
-              })
-              .catch(console.error);
-          }
-        }
+        return [...prev, {
+          socketId: socketListId,
+          stream: event.streams[0]
+        }];
       });
+    };
+
+    if (window.localStream) {
+      window.localStream.getTracks().forEach(track => {
+        pc.addTrack(track, window.localStream);
+      });
+    }
+
+    pc.createOffer()
+      .then(offer => pc.setLocalDescription(offer))
+      .then(() => {
+        socketRef.current.emit(
+          "signal",
+          socketListId,
+          JSON.stringify({ sdp: pc.localDescription })
+        );
+      });
+
+  });
+
+});
+      socketRef.current.on("user-joined", (id) => {
+
+  const pc = new RTCPeerConnection(peerConfigConnections);
+
+  connections[id] = pc;
+
+  pc.onicecandidate = (event) => {
+    if (event.candidate) {
+      socketRef.current.emit(
+        "signal",
+        id,
+        JSON.stringify({ ice: event.candidate })
+      );
+    }
+  };
+
+  pc.ontrack = (event) => {
+    setVideos(prev => {
+      const exists = prev.find(v => v.socketId === id);
+      if (exists) return prev;
+
+      return [...prev, {
+        socketId: id,
+        stream: event.streams[0]
+      }];
+    });
+  };
+
+  if (window.localStream) {
+    window.localStream.getTracks().forEach(track => {
+      pc.addTrack(track, window.localStream);
+    });
+  }
+
+});
     });
   };
 

@@ -29,7 +29,7 @@ export const connectToSocket = (server) => {
                 io.to(id).emit("user-joined", socket.id);
             });
 
-            // send existing users to joiner
+            // send existing users to the joiner
             io.to(socket.id).emit("existing-users", existingUsers);
         });
         socket.on("signal", (toId, message) => {
