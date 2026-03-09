@@ -186,26 +186,11 @@ export default function VideoMeetComponent() {
   };
 
   let getUserMediaSuccess = (stream) => {
-    // Stop old tracks
-    try {
-      window.localStream?.getTracks().forEach((track) => track.stop());
-    } catch (e) {
-      console.log(e);
-    }
-
-    // Set new local stream
     window.localStream = stream;
     localVideoref.current.srcObject = stream;
 
-    // 🔒 IMPORTANT:
-    // DO NOT create offers here
-    // DO NOT touch SDP
-    // DO NOT add / replace streams
-
-    // Handle track end safely
     stream.getTracks().forEach((track) => {
       track.onended = () => {
-        // Just disable the track
         track.enabled = false;
       };
     });
@@ -217,11 +202,6 @@ export default function VideoMeetComponent() {
         .getUserMedia({ video: video, audio: audio })
         .then(getUserMediaSuccess)
         .catch((e) => console.log(e));
-    } else {
-      try {
-        let tracks = localVideoref.current.srcObject.getTracks();
-        tracks.forEach((track) => track.stop());
-      } catch (e) {}
     }
   };
 
@@ -248,78 +228,73 @@ export default function VideoMeetComponent() {
     };
   };
 
- let gotMessageFromServer = async (fromId, message) => {
+  let gotMessageFromServer = async (fromId, message) => {
+    const signal = JSON.parse(message);
 
-  const signal = JSON.parse(message);
+    if (fromId === socketIdRef.current) return;
 
-  if (fromId === socketIdRef.current) return;
+    // Create peer if it doesn't exist
+    if (!connections[fromId]) {
+      const pc = new RTCPeerConnection(peerConfigConnections);
+      connections[fromId] = pc;
 
-  // Create peer if it doesn't exist
-  if (!connections[fromId]) {
+      pc.onicecandidate = (event) => {
+        if (event.candidate) {
+          socketRef.current.emit(
+            "signal",
+            fromId,
+            JSON.stringify({ ice: event.candidate }),
+          );
+        }
+      };
 
-    const pc = new RTCPeerConnection(peerConfigConnections);
-    connections[fromId] = pc;
+      pc.ontrack = (event) => {
+        setVideos((prev) => {
+          const exists = prev.find((v) => v.socketId === fromId);
+          if (exists) return prev;
 
-    pc.onicecandidate = (event) => {
-      if (event.candidate) {
+          return [
+            ...prev,
+            {
+              socketId: fromId,
+              stream: event.streams[0],
+            },
+          ];
+        });
+      };
+
+      if (window.localStream) {
+        window.localStream.getTracks().forEach((track) => {
+          pc.addTrack(track, window.localStream);
+        });
+      }
+    }
+
+    const pc = connections[fromId];
+
+    if (signal.sdp) {
+      await pc.setRemoteDescription(new RTCSessionDescription(signal.sdp));
+
+      if (signal.sdp.type === "offer") {
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+
         socketRef.current.emit(
           "signal",
           fromId,
-          JSON.stringify({ ice: event.candidate })
+          JSON.stringify({ sdp: pc.localDescription }),
         );
       }
-    };
-
-    pc.ontrack = (event) => {
-      setVideos(prev => {
-        const exists = prev.find(v => v.socketId === fromId);
-        if (exists) return prev;
-
-        return [...prev, {
-          socketId: fromId,
-          stream: event.streams[0]
-        }];
-      });
-    };
-
-    if (window.localStream) {
-      window.localStream.getTracks().forEach(track => {
-        pc.addTrack(track, window.localStream);
-      });
     }
 
-  }
-
-  const pc = connections[fromId];
-
-  if (signal.sdp) {
-
-    await pc.setRemoteDescription(new RTCSessionDescription(signal.sdp));
-
-    if (signal.sdp.type === "offer") {
-
-      const answer = await pc.createAnswer();
-      await pc.setLocalDescription(answer);
-
-      socketRef.current.emit(
-        "signal",
-        fromId,
-        JSON.stringify({ sdp: pc.localDescription })
-      );
-
+    if (signal.ice) {
+      try {
+        await pc.addIceCandidate(new RTCIceCandidate(signal.ice));
+      } catch (e) {
+        console.log("ICE error", e);
+      }
     }
-
-  }
-
-  if (signal.ice) {
-    try {
-      await pc.addIceCandidate(new RTCIceCandidate(signal.ice));
-    } catch (e) {
-      console.log("ICE error", e);
-    }
-  }
-
-};
+  };
 
   let connectToSocketServer = () => {
     socketRef.current = io.connect(server_url, { secure: false });
@@ -340,90 +315,90 @@ export default function VideoMeetComponent() {
 
         setVideos((videos) => videos.filter((v) => v.socketId !== id));
       });
-socketRef.current.on("existing-users", (users) => {
+      socketRef.current.on("existing-users", (users) => {
+        users.forEach((socketListId) => {
+          const pc = new RTCPeerConnection(peerConfigConnections);
 
-  users.forEach((socketListId) => {
+          connections[socketListId] = pc;
 
-    const pc = new RTCPeerConnection(peerConfigConnections);
+          pc.onicecandidate = (event) => {
+            if (event.candidate) {
+              socketRef.current.emit(
+                "signal",
+                socketListId,
+                JSON.stringify({ ice: event.candidate }),
+              );
+            }
+          };
 
-    connections[socketListId] = pc;
+          pc.ontrack = (event) => {
+            setVideos((prev) => {
+              const exists = prev.find((v) => v.socketId === socketListId);
+              if (exists) return prev;
 
-    pc.onicecandidate = (event) => {
-      if (event.candidate) {
-        socketRef.current.emit(
-          "signal",
-          socketListId,
-          JSON.stringify({ ice: event.candidate })
-        );
-      }
-    };
+              return [
+                ...prev,
+                {
+                  socketId: socketListId,
+                  stream: event.streams[0],
+                },
+              ];
+            });
+          };
 
-    pc.ontrack = (event) => {
-      setVideos(prev => {
-        const exists = prev.find(v => v.socketId === socketListId);
-        if (exists) return prev;
+          if (window.localStream) {
+            window.localStream.getTracks().forEach((track) => {
+              pc.addTrack(track, window.localStream);
+            });
+          }
 
-        return [...prev, {
-          socketId: socketListId,
-          stream: event.streams[0]
-        }];
+          pc.createOffer()
+            .then((offer) => pc.setLocalDescription(offer))
+            .then(() => {
+              socketRef.current.emit(
+                "signal",
+                socketListId,
+                JSON.stringify({ sdp: pc.localDescription }),
+              );
+            });
+        });
       });
-    };
-
-    if (window.localStream) {
-      window.localStream.getTracks().forEach(track => {
-        pc.addTrack(track, window.localStream);
-      });
-    }
-
-    pc.createOffer()
-      .then(offer => pc.setLocalDescription(offer))
-      .then(() => {
-        socketRef.current.emit(
-          "signal",
-          socketListId,
-          JSON.stringify({ sdp: pc.localDescription })
-        );
-      });
-
-  });
-
-});
       socketRef.current.on("user-joined", (id) => {
+        const pc = new RTCPeerConnection(peerConfigConnections);
 
-  const pc = new RTCPeerConnection(peerConfigConnections);
+        connections[id] = pc;
 
-  connections[id] = pc;
+        pc.onicecandidate = (event) => {
+          if (event.candidate) {
+            socketRef.current.emit(
+              "signal",
+              id,
+              JSON.stringify({ ice: event.candidate }),
+            );
+          }
+        };
 
-  pc.onicecandidate = (event) => {
-    if (event.candidate) {
-      socketRef.current.emit(
-        "signal",
-        id,
-        JSON.stringify({ ice: event.candidate })
-      );
-    }
-  };
+        pc.ontrack = (event) => {
+          setVideos((prev) => {
+            const exists = prev.find((v) => v.socketId === id);
+            if (exists) return prev;
 
-  pc.ontrack = (event) => {
-    setVideos(prev => {
-      const exists = prev.find(v => v.socketId === id);
-      if (exists) return prev;
+            return [
+              ...prev,
+              {
+                socketId: id,
+                stream: event.streams[0],
+              },
+            ];
+          });
+        };
 
-      return [...prev, {
-        socketId: id,
-        stream: event.streams[0]
-      }];
-    });
-  };
-
-  if (window.localStream) {
-    window.localStream.getTracks().forEach(track => {
-      pc.addTrack(track, window.localStream);
-    });
-  }
-
-});
+        if (window.localStream) {
+          window.localStream.getTracks().forEach((track) => {
+            pc.addTrack(track, window.localStream);
+          });
+        }
+      });
     });
   };
 
@@ -446,10 +421,11 @@ socketRef.current.on("existing-users", (users) => {
   };
 
   let handleVideo = () => {
-    window.localStream
-      ?.getVideoTracks()
-      .forEach((t) => (t.enabled = !t.enabled));
-    setVideo((v) => !v);
+    const track = window.localStream?.getVideoTracks()[0];
+    if (!track) return;
+
+    track.enabled = !track.enabled;
+    setVideo(track.enabled);
   };
 
   let handleAudio = () => {
