@@ -421,11 +421,10 @@ export default function VideoMeetComponent() {
   };
 
   let handleVideo = () => {
-    const track = window.localStream?.getVideoTracks()[0];
-    if (!track) return;
-
-    track.enabled = !track.enabled;
-    setVideo(track.enabled);
+    window.localStream
+      ?.getVideoTracks()
+      .forEach((t) => (t.enabled = !t.enabled));
+    setVideo((v) => !v);
   };
 
   let handleAudio = () => {
